@@ -27,7 +27,15 @@ class Warehouse:
         if not self.items.get(item.name):
             self.items[item.name] = item
         else:
-            self.items[item.name].amount += 1
+            self.items[item.name].amount += item.amount
+    
+    def subtract_item(self, item: Item) -> bool:
+        if (not self.items.get(item.name)
+            or self.items.get(item.name).amount < item.amount):
+            return False
+        else:
+            self.items[item.name].amount -= item.amount
+            return True
     
     def get_item(self, name):
         item = self.items.get(name)

@@ -15,43 +15,85 @@ logging.basicConfig(
 ADDRESS = ('', int(sys.argv[2]))
 transactions = {}
 warehouse = Warehouse(sys.argv[1])
+warehouse.add_item(Item('stonk', 9000, 255))
 
-def prepare(message) -> msg.Message:
-    event = message.event
-    print(event)
+def prepare(event) -> Response:
     # OKAY OH WELL
-    event = TransferEvent('A', 'B', Item('stonk', 9000))
     if isinstance(event, TransferEvent):
         item: Item = event.item
         if event.source == warehouse.name:
             our_item = warehouse.get_item(item.name)
             if our_item:
                 if our_item.amount >= item.amount:
-                    return msg.StatusMessage('ok we can give dis', message.id, True)
+                    logging.debug(f'We have {our_item} and shall subtract {item}')
+                    return Response(OK, 'ok we can give dis')
                 else:
-                    return msg.StatusMessage('not enough left', message.id, False)
+                    return Response(ERROR, 'not enough left')
             else:
-                return msg.StatusMessage('not in stock', message.id, False)
+                return Response(INVALID, 'not in stock')
         elif event.destination == warehouse.name:
-            return msg.StatusMessage('ok we\'ll see', message.id, True)
+            return Response(OK, 'ok we\'ll see')
         else:
-            return msg.StatusMessage('I am not involved', message.id, False)
-    else: return msg.StatusMessage('wtf', message.id, False)
+            return Response(INVALID, 'I am not involved')
+    else: return Response(INVALID, 'wtf')
 
-def commit(message) -> msg.Message:
-    if not message.id in transactions:
-        logging.error(f'Unknown transaction {message.id}')
-        return msg.StatusMessage('yolo nope', message.id, False)
-    else:
-        return msg.StatusMessage('eeeh', message.id, True)
+def commit(event: Event) -> Response:
+    if isinstance(event, TransferEvent):
+        item = event.item
+        if event.source == warehouse.name:
+            our_item = warehouse.get_item(item.name)
+            if our_item:
+                if our_item.amount >= item.amount:
+                    our_item.amount -= item.amount
+                    logging.debug(f'there is now {our_item}')
+                    return Response(OK, 'ok it is given')
+                else:
+                    return Response(ERROR, 'not enough left')
+            else:
+                return Response(INVALID, 'not in stock')
+        elif event.destination == warehouse.name:
+            warehouse.add_item(item)
+            logging.debug(f'there is now {warehouse.get_item(item.name)}')
+            return Response(OK, 'i got it!')
+        else:
+            return Response(INVALID, 'I am not involved')
 
-def handle_transaction_stage(conn: socket.socket, message: msg.TransactionMessage):
-    response = msg.Message('uhhhh', 'idk')
+def rollback(event: Event) -> Response:
+    if isinstance(event,TransferEvent):
+        item = event.item
+        our_item = warehouse.get_item(item.name)
+        if not our_item:
+            return Response(INVALID, 'not in stock')
+        
+        if event.source == warehouse.name:
+            warehouse.add_item(item)
+            return Response(OK, 'got it back')
+        elif event.destination == warehouse.name:
+            if warehouse.subtract_item(item):
+                return Response(OK, 'removed it')
+            else:
+                return Response(INVALID, 'cannot subtract that')
+        else:
+            return Response(INVALID, 'I am not involved')
+
+def abort(event: Event) -> Response:
+    # only relevant once there's some action log...
+    return Response(OK, 'i guess it won\'t happen then')
+
+that_map = {
+    PREPARE: prepare,
+    COMMIT: commit,
+    ROLLBACK: rollback,
+    ABORT: abort
+}
+
+def handle_transaction_stage(conn: socket.socket, message: Event):
+    response = Response(FAILURE, 'idk')
     try:
-        response = prepare(message)
+        response = that_map[message.state](message)
     except KeyError as e:
         logging.error(f'stuff {message.id} and {e}')
-        response = msg.StatusMessage('nope', message.id, False)
+        response = Response(FAILURE, 'Invalid message')
         #logging.error(f'Unknown transaction {message.id}')
         #response = msg.StatusMessage('yolo nope', message.id, False)
         
@@ -62,8 +104,8 @@ with socket.create_server(ADDRESS) as server:
     while True:
         conn, remote = server.accept()
         with conn:
-            message = pickle.loads(conn.recv(1024))
-            if isinstance(message, msg.TransactionMessage):
+            message = pickle.loads(conn.recv(4096))
+            if isinstance(message, Event):
                 handle_transaction_stage(conn, message)
             else:
-                conn.sendall(pickle.dumps(msg.StatusMessage('what', -1, False)))
+                conn.sendall(pickle.dumps(Response(INVALID, 'not an event...')))
