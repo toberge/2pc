@@ -1,17 +1,13 @@
 class Item:
     """simple class for item in warehouse"""
-    _id = 0
-    def __init__(self, name, value):
+    def __init__(self, name, value, amount=1):
         self.name = name
         self.value = value
-        self.amount = 1
-        self.id = Item._id
-        Item._id += 1
+        self.amount = amount
     
     @classmethod
     def copyof(cls, item, amount):
         copy = cls(item.name, item.value)
-        copy.id = item.id
         copy.amount = amount
         return copy
     
@@ -28,13 +24,13 @@ class Warehouse:
         self.items = {}
     
     def add_item(self, item: Item):
-        if not self.items.get(item.id):
-            self.items[item.id] = item
+        if not self.items.get(item.name):
+            self.items[item.name] = item
         else:
-            self.items[item.id].amount += 1
+            self.items[item.name].amount += 1
     
-    def get_item(self, _id):
-        item = self.items.get(_id)
+    def get_item(self, name):
+        item = self.items.get(name)
         return item
 
 if __name__ == "__main__":

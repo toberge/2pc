@@ -1,7 +1,7 @@
-from warehouse import Item
+from model.warehouse import Item
 
 class Event:
-
+    """Base class for events"""
     def __init__(self, _type):
         self.type = _type
 
