@@ -1,4 +1,5 @@
 import json
+from model.event import Event
 
 class Message:
     """Base class for messages transmitted between parties"""
@@ -6,38 +7,30 @@ class Message:
         self.message = message
         self.type = _type
 
-class Transfer(Message):
-    """Transfer item from A to B"""
-    def __init__(self, message, source, destination, itemname):
-        super().__init__(message, 'transfer')
-        self.source = source
-        self.destination = destination
-        self.item = itemname
-
-class Status(Message):
+class StatusMessage(Message):
     """Status of tansaction, sent from one party"""
     def __init__(self, message, transactionid, success: bool):
         super().__init__(message, 'status')
-        self.transactionid = transactionid
+        self.id = transactionid
         self.success = success
 
 class TransactionMessage(Message):
     """Sent from coordinator to parties"""
-    def __init__(self, message, transactionid, event, command):
+    def __init__(self, message, transactionid, event: Event, command):
         super().__init__(message, 'prepare')
         self.id = transactionid
         self.event = event
         self.command = command
 
-class Command:
-    """very stupid idea"""
-    PREPARE = 1
-    COMMIT = 2
-    RELAX = -1
-    ROLLBACK = -2
+PREPARE = 1
+COMMIT = 2
+RELAX = -1
+ROLLBACK = -2
+
+# The rest of this file is not needed atm cuz pickle
 
 TYPE_MAP = {
-    'transfer': lambda d: Transfer(d['message'], d['source'], d['destination'], d['item'])
+    #'transfer': lambda d: Transfer(d['message'], d['source'], d['destination'], d['item'])
 }
 
 def loads(string) -> Message:
@@ -54,8 +47,8 @@ def dumps(message: Message) -> str:
         return json.dumps(message.__dict__)
 
 
-if __name__ == '__main__':
-    msg = Transfer('hi', '234', '5678', 'socks')
-    print(loads(dumps(msg)))
-    help(Transfer)
+#if __name__ == '__main__':
+    #msg = Transfer('hi', '234', '5678', 'socks')
+    #print(loads(dumps(msg)))
+    #help(Transfer)
   

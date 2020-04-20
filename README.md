@@ -13,7 +13,28 @@ and
 
 rundown of 2pc
 
-# Implemented functionality
+1. coordinator asks if parties can do the transaction
+    - if all agree, proceed
+    - if one disagrees, abort
+2. coordinator asks parties to perform the action
+    - if all succeed, the transaction is complete
+    - if one fails, the state must be rolled back
+
+## Implemented functionality
+
+- [x] Simple 2PC demonstration
+- [x] Simple data model
+- [ ] Events
+- [ ] Messages
+- [ ] Transaction coordinator
+- [ ] Warehouse service
+- [ ] Ledger service
+- [ ] Abort of ready state
+- [ ] Rollback
+- [ ] Retrying transaction if not _invalid_
+- [ ] Transaction logging
+- [ ] Undo and redo logs
+- [ ] Dynamic coordination from anywhere
 
 ## Architecture choices ++
 

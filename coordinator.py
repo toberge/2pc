@@ -1,6 +1,10 @@
 from model.warehouse import Item, Warehouse
 from model.event import *
 import logging
+import socket
+import pickle
+from message import StatusMessage, TransactionMessage
+import message as msg
 
 warehouse_addresses = {
     'A': ('', 8080),
@@ -60,6 +64,21 @@ class Transaction:
     def start_preparation(self) -> bool:
         """Notify involved services about the upcoming transaction
         and ask if they are ready"""
+        for address in self.parties:
+            logging.log(logging.INFO, f'Informing {address} to prepare transaction')
+            if address[1] == 8090:
+                print('no')
+                continue # skip ledger 4 now
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.connect(address)
+                sock.sendall(pickle.dumps(TransactionMessage('hi', self.id, self.event, msg.PREPARE)))
+                message: StatusMessage = pickle.loads(sock.recv(1024))
+                print(message.message)
+                if not message.success:
+                    logging.error(f'Failure at {address} because "{message.message}"')
+                    return False
+                else:
+                    logging.info(f'Finished {address}')
         return True
 
     def notify_failure(self):
@@ -86,7 +105,6 @@ if __name__ == '__main__':
         #handlers=[hello],
         format='%(asctime)s %(levelname)s: %(message)s'
     )
-    logging.info('hi there')
     logging.debug('hello')
     coordinator = Coordinator()
     coordinator.listen(('', 3000))
