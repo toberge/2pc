@@ -1,10 +1,8 @@
 from model.warehouse import Item, Warehouse
-from model.event import *
+from event import *
 import logging
 import socket
 import pickle
-from message import StatusMessage, TransactionMessage
-import message as msg
 
 warehouse_addresses = {
     'A': ('', 8080),
@@ -120,5 +118,5 @@ if __name__ == '__main__':
     coordinator = Coordinator()
     coordinator.listen(('', 3000))
     coordinator.handle_transaction(
-        TransferEvent('B', 'A', Item('stonk', 9000, 50))
+        TransferEvent('A', 'B', Item('stonk', 9000, 50))
     )

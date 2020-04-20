@@ -2,10 +2,17 @@
 
 > Navn på biblioteket og eventuell lenke til continuous integration løsning
 
-At the moment, this is but a very simple demonstration. See
+There is one major reason for many of the choices I made during this project:  
+I am **one person** and had very little time.  
+This necessitated limiting the scope of the project, and choosing simplicity wherever possible.
+
+I started this project with creating a very simple demonstration. See
 [testcoordinator.py](testcoordinator.py)
 and
 [testservice.py](testservice.py)
+.
+
+The current system blah blah ...
 
 ## Contents
 
@@ -24,17 +31,17 @@ rundown of 2pc
 
 - [x] Simple 2PC demonstration
 - [x] Simple data model
-- [ ] Events
-- [ ] Messages
-- [ ] Transaction coordinator
-- [ ] Warehouse service
+- [x] Events
+- [x] Messages
+- [x] Transaction coordinator
+- [x] Warehouse service
 - [ ] Ledger service
-- [ ] Abort of ready state
-- [ ] Rollback
+- [x] Abort of ready state
+- [x] Rollback
 - [ ] Retrying transaction if not _invalid_
 - [ ] Transaction logging
 - [ ] Undo and redo logs
-- [ ] Dynamic coordination from anywhere
+- [ ] Dynamic coordination from anywhere (really?)
 
 ## Architecture choices ++
 
@@ -47,10 +54,9 @@ Using simple TCP sockets blah blah
 
 ### Library choices
 
-+ pickle to serialize message data (nope)
-+ standard socket module
-+ logging for creating readable logs
-+ ++
++ `pickle` to serialize message data
++ standard `socket` module
++ `logging` for creating readable logs
 
 ## Future improvements
 

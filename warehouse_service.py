@@ -2,9 +2,7 @@ import socket
 import sys
 import logging
 import pickle
-import message as msg
-from model.event import *
-import model.event
+from event import *
 from model.warehouse import Warehouse, Item
 
 logging.basicConfig(
@@ -32,6 +30,7 @@ def prepare(event) -> Response:
             else:
                 return Response(INVALID, 'not in stock')
         elif event.destination == warehouse.name:
+            logging.debug(f'yeah ok sure, we have {warehouse.get_item(item.name)}')
             return Response(OK, 'ok we\'ll see')
         else:
             return Response(INVALID, 'I am not involved')
@@ -67,9 +66,11 @@ def rollback(event: Event) -> Response:
         
         if event.source == warehouse.name:
             warehouse.add_item(item)
+            logging.debug(f'rollback: there is now {our_item}')
             return Response(OK, 'got it back')
         elif event.destination == warehouse.name:
             if warehouse.subtract_item(item):
+                logging.debug(f'rollback: there is now {our_item}')
                 return Response(OK, 'removed it')
             else:
                 return Response(INVALID, 'cannot subtract that')
@@ -94,8 +95,6 @@ def handle_transaction_stage(conn: socket.socket, message: Event):
     except KeyError as e:
         logging.error(f'stuff {message.id} and {e}')
         response = Response(FAILURE, 'Invalid message')
-        #logging.error(f'Unknown transaction {message.id}')
-        #response = msg.StatusMessage('yolo nope', message.id, False)
         
     conn.sendall(pickle.dumps(response))
 

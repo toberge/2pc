@@ -37,6 +37,9 @@ class TransferEvent(Event):
         self.source = source
         self.destination = destination
         self.item = item
+    
+    def __str__(self):
+        return f'Transfer of {self.item} from {self.source} to {self.destination}'
 
 OK = 0
 INVALID = 1
