@@ -2,6 +2,11 @@
 
 > Navn på biblioteket og eventuell lenke til continuous integration løsning
 
+At the moment, this is but a very simple demonstration. See
+[testcoordinator.py](testcoordinator.py)
+and
+[testservice.py](testservice.py)
+
 ## Contents
 
 ## Introduction
