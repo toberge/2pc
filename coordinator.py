@@ -31,7 +31,10 @@ class Coordinator:
                 ledger_address
             ])
         elif event.type == 'loss' or event.type == 'gain':
-            transaction = Transaction(event, [ledger_address])
+            transaction = Transaction(event,[
+                warehouse_addresses[event.subject],
+                ledger_address
+            ])
         else:
             logging.error('Got invalid transaction request')
             return
@@ -69,9 +72,6 @@ class Transaction:
         for address in parties:
             logging.info(context.format(address))
             if append: self.processed_parties.append(address)
-            if address[1] == 8090:
-                print('no')
-                continue # skip ledger for now
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.connect(address)
                 sock.sendall(pickle.dumps(self.event))
@@ -119,4 +119,10 @@ if __name__ == '__main__':
     coordinator.listen(('', 3000))
     coordinator.handle_transaction(
         TransferEvent('A', 'B', Item('stonk', 9000, 50))
+    )
+    coordinator.handle_transaction(
+        GainEvent('A', Item('shoe', 42, 10))
+    )
+    coordinator.handle_transaction(
+        LossEvent('A', Item('shoe', 42, 5))
     )
